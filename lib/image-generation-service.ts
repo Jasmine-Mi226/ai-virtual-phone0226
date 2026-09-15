@@ -2,6 +2,7 @@ import type { ImageGenerationSettings, NovelAiPreset } from "./settings-types";
 import { loadImageGenerationSettings, DEFAULT_NOVELAI_PRESET } from "./settings-storage";
 import JSZip from "jszip";
 import { getChatImageFromIndexedDB } from "./chat-asset-storage";
+import { loadCharacters } from "./character-storage";
 import { storeMediaBlob } from "./media-cache-storage";
 import { throwIfAborted } from "./abort-utils";
 import {
@@ -737,6 +738,19 @@ export async function generateImageFromConfiguredApi(params: {
   const description = params.description.trim();
   if (!description) return null;
 
+  // 自动识别性别并注入保护词，防止模型搞错男女
+  const chars = loadCharacters();
+  const character = params.characterId ? chars.find(c => c.id === params.characterId) : null;
+  let protectedDescription = description;
+  if (character) {
+    const p = (character.persona + (character.personality || "")).toLowerCase();
+    const isFemale = p.includes("女") || p.includes("girl") || p.includes("female") || p.includes("woman") || p.includes("少女") || p.includes("女性") || p.includes("女主");
+    const isMale = p.includes("男") || p.includes("boy") || p.includes("male") || p.includes("man") || p.includes("少年") || p.includes("男性") || p.includes("男主");
+    // 注入最高权重提示词，纠正模型偏差
+    if (isFemale && !isMale) protectedDescription = `(1girl:1.5), (solo:1.3), ${protectedDescription}`;
+    else if (isMale && !isFemale) protectedDescription = `(1boy:1.5), (solo:1.3), ${protectedDescription}`;
+  }
+
   // NovelAI 模式
   if (settings.provider === "novelai") {
     const naiApiKey = settings.novelai?.apiKey?.trim();
@@ -749,7 +763,7 @@ export async function generateImageFromConfiguredApi(params: {
 
     const positiveParts: string[] = [];
     if (activePreset.positivePrompt?.trim()) positiveParts.push(activePreset.positivePrompt.trim());
-    if (description) positiveParts.push(description);
+    if (protectedDescription) positiveParts.push(protectedDescription);
     const fullPrompt = positiveParts.join(", ");
 
     const data = settings.requestMode === "direct"
@@ -780,7 +794,8 @@ export async function generateImageFromConfiguredApi(params: {
   if (!openaiSettings.apiKey.trim() || !openaiSettings.baseUrl.trim() || !openaiSettings.model.trim()) return null;
 
   const reference = params.characterId ? settings.characterReferences[params.characterId] : undefined;
-  const rawReferenceImageDataUrl = params.useReferenceImage && reference?.assetId
+  // 强制锁定参考图：只要该角色配置了参考图资产，就无视前端开关强制启用
+  const rawReferenceImageDataUrl = reference?.assetId
     ? await getChatImageFromIndexedDB(reference.assetId)
     : null;
   throwIfAborted(params.signal);
@@ -788,7 +803,7 @@ export async function generateImageFromConfiguredApi(params: {
     ? await normalizeReferenceImageForEdit(rawReferenceImageDataUrl)
     : null;
   throwIfAborted(params.signal);
-  const prompt = mergePrompt(description, openaiSettings.extraPrompt);
+  const prompt = mergePrompt(protectedDescription, openaiSettings.extraPrompt);
 
   const data = openaiSettings.requestMode === "direct"
     ? await generateImageDirect({ settings: openaiSettings, prompt, referenceImageDataUrl, signal: params.signal })
