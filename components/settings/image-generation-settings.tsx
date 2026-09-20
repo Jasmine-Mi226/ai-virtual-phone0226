@@ -120,6 +120,14 @@ export function ImageGenerationSettings() {
     }, [settings.userReference]);
 
     useEffect(() => {
+        if (settings.userReference?.assetId) {
+            getChatImageFromIndexedDB(settings.userReference.assetId).then(setUserReferencePreview);
+        } else {
+            setUserReferencePreview(null);
+        }
+    }, [settings.userReference]);
+
+    useEffect(() => {
         let cancelled = false;
         const refs = settings.characterReferences || {};
         Promise.all(Object.entries(refs).map(async ([characterId, ref]) => {
@@ -332,6 +340,16 @@ export function ImageGenerationSettings() {
             delete next[characterId];
             return next;
         });
+    };
+
+    const uploadUserReference = async (file: File) => {
+        const assetId = await saveChatImageToIndexedDB(file);
+        persist({ ...settings, userReference: { assetId, updatedAt: Date.now() } });
+    };
+
+    const removeUserReference = () => {
+        persist({ ...settings, userReference: undefined });
+        setUserReferencePreview(null);
     };
 
     const uploadUserReference = async (file: File) => {
@@ -870,6 +888,55 @@ export function ImageGenerationSettings() {
                                 className="settings-toggle-control"
                                 disabled={settings.imageHosting.provider !== "imgbb"}
                             />
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <p className="settings-menu-section-title">My Image Reference (User)</p>
+                <div className="menu-group">
+                    <div className="menu-item">
+                        <span className="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-[var(--c-input)]">
+                            {userReferencePreview ? (
+                                <img src={userReferencePreview} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                                <span className="flex h-full w-full items-center justify-center ts-13 font-semibold text-[var(--c-icon)]">
+                                    Me
+                                </span>
+                            )}
+                        </span>
+                        <span className="min-w-0 flex flex-1 flex-col">
+                            <span className="menu-label truncate">我的形象锁定</span>
+                            <span className="menu-desc truncate">{userReferencePreview ? "已物理锁定长相" : "未设置（生图时长相随机）"}</span>
+                        </span>
+                        <span className="menu-right flex gap-2">
+                            <button
+                                type="button"
+                                className="ui-link-btn"
+                                onClick={() => {
+                                    const input = document.createElement("input");
+                                    input.type = "file";
+                                    input.accept = "image/*";
+                                    input.onchange = async () => {
+                                        const file = input.files?.[0];
+                                        if (file) await uploadUserReference(file);
+                                    };
+                                    input.click();
+                                }}
+                            >
+                                <Upload size={18} />
+                            </button>
+                            {userReferencePreview && (
+                                <button
+                                    type="button"
+                                    className="ui-link-btn"
+                                    data-variant="danger"
+                                    onClick={removeUserReference}
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            )}
                         </span>
                     </div>
                 </div>
