@@ -245,6 +245,10 @@ export type ImageGenerationSettings = {
         assetId: string;
         updatedAt: number;
     }>;
+    userReference?: {
+        assetId: string;
+        updatedAt: number;
+    };
     imageHosting: ImageHostingSettings;
 };
 

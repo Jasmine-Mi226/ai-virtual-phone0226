@@ -1,5 +1,5 @@
 import type { ImageGenerationSettings, NovelAiPreset } from "./settings-types";
-import { loadImageGenerationSettings, DEFAULT_NOVELAI_PRESET } from "./settings-storage";
+import { loadImageGenerationSettings, DEFAULT_NOVELAI_PRESET, resolveUserIdentity } from "./settings-storage";
 import JSZip from "jszip";
 import { getChatImageFromIndexedDB } from "./chat-asset-storage";
 import { loadCharacters } from "./character-storage";
@@ -738,15 +738,19 @@ export async function generateImageFromConfiguredApi(params: {
   const description = params.description.trim();
   if (!description) return null;
 
-  // 自动识别性别并注入保护词，防止模型搞错男女
+  // 自动识别性别并注入保护词（支持角色或用户自身）
   const chars = loadCharacters();
   const character = params.characterId ? chars.find(c => c.id === params.characterId) : null;
+  const userIdentity = !character ? resolveUserIdentity() : null;
   let protectedDescription = description;
-  if (character) {
-    const p = (character.persona + (character.personality || "")).toLowerCase();
+  const personaText = character
+    ? (character.persona + (character.personality || ""))
+    : (userIdentity ? (userIdentity.persona + (userIdentity.personality || "")) : "");
+
+  if (personaText) {
+    const p = personaText.toLowerCase();
     const isFemale = p.includes("女") || p.includes("girl") || p.includes("female") || p.includes("woman") || p.includes("少女") || p.includes("女性") || p.includes("女主");
     const isMale = p.includes("男") || p.includes("boy") || p.includes("male") || p.includes("man") || p.includes("少年") || p.includes("男性") || p.includes("男主");
-    // 注入最高权重提示词，纠正模型偏差
     if (isFemale && !isMale) protectedDescription = `(1girl:1.5), (solo:1.3), ${protectedDescription}`;
     else if (isMale && !isFemale) protectedDescription = `(1boy:1.5), (solo:1.3), ${protectedDescription}`;
   }
@@ -793,8 +797,10 @@ export async function generateImageFromConfiguredApi(params: {
   const openaiSettings = openaiPreset ? { ...settings, ...openaiPreset } : settings;
   if (!openaiSettings.apiKey.trim() || !openaiSettings.baseUrl.trim() || !openaiSettings.model.trim()) return null;
 
-  const reference = params.characterId ? settings.characterReferences[params.characterId] : undefined;
-  // 强制锁定参考图：只要该角色配置了参考图资产，就无视前端开关强制启用
+  const reference = params.characterId
+    ? settings.characterReferences[params.characterId]
+    : settings.userReference;
+  // 强制锁定参考图：只要配置了参考图资产（角色或用户自己），就无视前端开关强制启用
   const rawReferenceImageDataUrl = reference?.assetId
     ? await getChatImageFromIndexedDB(reference.assetId)
     : null;

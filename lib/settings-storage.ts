@@ -699,6 +699,7 @@ export const DEFAULT_IMAGE_GENERATION_SETTINGS: ImageGenerationSettings = {
         presets: [DEFAULT_NOVELAI_PRESET],
     },
     characterReferences: {},
+    userReference: undefined,
     imageHosting: {
         provider: "none",
         imgbbApiKey: "",
