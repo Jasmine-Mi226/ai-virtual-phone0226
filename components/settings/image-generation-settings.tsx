@@ -340,7 +340,19 @@ export function ImageGenerationSettings() {
                             <span className="menu-desc truncate">{userReferencePreview ? "已从底层物理锁定" : "未设置（画你时长相随机）"}</span>
                         </span>
                         <span className="menu-right flex gap-2">
-                            <button type="button" className="ui-link-btn" onClick={() => { const i = document.createElement("input"); i.type = "file"; i.accept = "image/*"; i.onchange = () => { const f = i.files?.[0]; if (f) uploadUserReference(f); }; i.click(); }}><Upload size={18} /></button>
+                            <label className="ui-link-btn cursor-pointer flex items-center justify-center m-0">
+                                <Upload size={18} />
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const f = e.target.files?.[0];
+                                        if (f) uploadUserReference(f);
+                                        e.target.value = "";
+                                    }}
+                                />
+                            </label>
                             {userReferencePreview && <button type="button" className="ui-link-btn" data-variant="danger" onClick={removeUserReference}><Trash2 size={18} /></button>}
                         </span>
                     </div>
@@ -360,7 +372,19 @@ export function ImageGenerationSettings() {
                                 <span className="menu-desc truncate">{referencePreviews[character.id] ? "已物理锁定参考图" : "未上传"}</span>
                             </span>
                             <span className="menu-right flex gap-2">
-                                <button type="button" className="ui-link-btn" onClick={() => { const i = document.createElement("input"); i.type = "file"; i.accept = "image/*"; i.onchange = () => { const f = i.files?.[0]; if (f) uploadReference(character.id, f); }; i.click(); }}><Upload size={18} /></button>
+                                <label className="ui-link-btn cursor-pointer flex items-center justify-center m-0">
+                                    <Upload size={18} />
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const f = e.target.files?.[0];
+                                            if (f) uploadReference(character.id, f);
+                                            e.target.value = "";
+                                        }}
+                                    />
+                                </label>
                                 {referencePreviews[character.id] && <button type="button" className="ui-link-btn" data-variant="danger" onClick={() => removeReference(character.id)}><Trash2 size={18} /></button>}
                             </span>
                         </div>

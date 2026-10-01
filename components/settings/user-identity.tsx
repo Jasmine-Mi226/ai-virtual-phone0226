@@ -222,23 +222,21 @@ export function UserIdentitySettings() {
                                     <>
                                         {/* Avatar upload + URL */}
                                         <div className="flex flex-col items-center gap-2">
-                                            <div
-                                                onClick={() => {
-                                                    const input = document.createElement("input");
-                                                    input.type = "file";
-                                                    input.accept = "image/*";
-                                                    input.onchange = async () => {
-                                                        const file = input.files?.[0];
+                                            <label className="ui-avatar-upload cursor-pointer relative overflow-hidden">
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
                                                         if (!file) return;
                                                         try {
                                                             const dataUrl = await fileToDataUrl(file);
                                                             updateIdentity(identity.id, { avatarUrl: dataUrl });
                                                         } catch { /* ignore */ }
-                                                    };
-                                                    input.click();
-                                                }}
-                                                className="ui-avatar-upload"
-                                            >
+                                                        e.target.value = "";
+                                                    }}
+                                                />
                                                 {identity.avatarUrl ? (
                                                     <>
                                                         <img src={identity.avatarUrl} alt="" className="w-full h-full object-cover" />
@@ -247,12 +245,12 @@ export function UserIdentitySettings() {
                                                         </div>
                                                     </>
                                                 ) : (
-                                                    <>
+                                                    <div className="flex flex-col items-center justify-center">
                                                         <User size={28} className="text-[var(--c-icon-active)]" />
                                                         <span className="ts-10 mt-[2px] text-[var(--c-icon-active)]">点击上传</span>
-                                                    </>
+                                                    </div>
                                                 )}
-                                            </div>
+                                            </label>
                                             <div className="flex items-center gap-[6px] w-full max-w-[280px]">
                                                 <Link size={14} className="shrink-0 text-[var(--c-text)]" />
                                                 <Input
