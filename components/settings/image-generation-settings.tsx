@@ -285,6 +285,50 @@ export function ImageGenerationSettings() {
             </div>
 
             <div className="flex flex-col gap-2">
+                <p className="settings-menu-section-title">Image Hosting (图床设置)</p>
+                <div className="menu-group p-4 flex flex-col gap-4">
+                    <div className="flex flex-col gap-1">
+                        <label className="menu-desc ml-1">图床服务商</label>
+                        <Select
+                            value={settings.imageHosting?.provider || "none"}
+                            onChange={(event) => {
+                                const provider = event.target.value as "none" | "imgbb";
+                                updateSettings({
+                                    imageHosting: {
+                                        ...(settings.imageHosting || DEFAULT_IMAGE_GENERATION_SETTINGS.imageHosting),
+                                        provider,
+                                    }
+                                });
+                            }}
+                        >
+                            {IMAGE_HOSTING_PROVIDER_OPTIONS.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </Select>
+                    </div>
+
+                    {settings.imageHosting?.provider === "imgbb" && (
+                        <div className="flex flex-col gap-1">
+                            <label className="menu-desc ml-1">ImgBB API Key (留空则尝试使用服务端环境变量)</label>
+                            <Input
+                                type="password"
+                                value={settings.imageHosting?.imgbbApiKey || ""}
+                                onChange={(event) => {
+                                    updateSettings({
+                                        imageHosting: {
+                                            ...(settings.imageHosting || DEFAULT_IMAGE_GENERATION_SETTINGS.imageHosting),
+                                            imgbbApiKey: event.target.value,
+                                        }
+                                    });
+                                }}
+                                placeholder="输入你的 ImgBB API Key"
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
                 <p className="settings-menu-section-title">My Image Reference (User)</p>
                 <div className="menu-group">
                     <div className="menu-item">
