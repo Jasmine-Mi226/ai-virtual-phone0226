@@ -276,6 +276,15 @@ export function ImageGenerationSettings() {
                                 </button>
                             </div>
                         </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="menu-desc ml-1">生图后缀提示词 (Extra Prompt)</label>
+                            <Textarea
+                                value={activeOpenAiPreset.extraPrompt || ""}
+                                onChange={(event) => updateOpenAiPreset({ extraPrompt: event.target.value })}
+                                placeholder="例如: masterpiece, best quality, ultra-detailed, 8k... (这些词会自动追加到生图指令后面)"
+                                rows={3}
+                            />
+                        </div>
                     </div>
                 )}
 
