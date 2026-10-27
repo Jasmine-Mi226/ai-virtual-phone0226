@@ -739,6 +739,7 @@ function normalizeOpenAiPreset(preset: Partial<OpenAiImagePreset> | null | undef
         size: typeof preset?.size === "string" ? preset.size : DEFAULT_IMAGE_GENERATION_SETTINGS.size,
         quality: typeof preset?.quality === "string" ? preset.quality : DEFAULT_IMAGE_GENERATION_SETTINGS.quality,
         extraPrompt: typeof preset?.extraPrompt === "string" ? preset.extraPrompt : "",
+        disableStream: preset?.disableStream === true,
     };
 }
 

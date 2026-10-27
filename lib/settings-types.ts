@@ -191,6 +191,7 @@ export type OpenAiImagePreset = {
     size: string;
     quality: string;
     extraPrompt: string;
+    disableStream?: boolean;
 };
 
 export type ImageHostingProvider = "none" | "imgbb";

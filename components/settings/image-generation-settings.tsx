@@ -159,13 +159,13 @@ export function ImageGenerationSettings() {
     const updateOpenAiPreset = useCallback((patch: Partial<OpenAiImagePreset>) => {
         const nextPresets = openaiPresets.map(preset => preset.id === activeOpenAiPresetId ? { ...preset, ...patch } : preset);
         const active = nextPresets.find(preset => preset.id === activeOpenAiPresetId) || nextPresets[0];
-        persist({ ...settings, openaiPresets: nextPresets, activeOpenAiPresetId, requestMode: active.requestMode, apiKey: active.apiKey, baseUrl: active.baseUrl, model: active.model, size: active.size, quality: active.quality, extraPrompt: active.extraPrompt });
+        persist({ ...settings, openaiPresets: nextPresets, activeOpenAiPresetId, requestMode: active.requestMode, apiKey: active.apiKey, baseUrl: active.baseUrl, model: active.model, size: active.size, quality: active.quality, extraPrompt: active.extraPrompt, disableStream: active.disableStream });
     }, [activeOpenAiPresetId, openaiPresets, persist, settings]);
 
     const selectOpenAiPreset = useCallback((id: string) => {
         const active = openaiPresets.find(preset => preset.id === id);
         if (!active) return;
-        persist({ ...settings, activeOpenAiPresetId: id, requestMode: active.requestMode, apiKey: active.apiKey, baseUrl: active.baseUrl, model: active.model, size: active.size, quality: active.quality, extraPrompt: active.extraPrompt });
+        persist({ ...settings, activeOpenAiPresetId: id, requestMode: active.requestMode, apiKey: active.apiKey, baseUrl: active.baseUrl, model: active.model, size: active.size, quality: active.quality, extraPrompt: active.extraPrompt, disableStream: active.disableStream });
     }, [openaiPresets, persist, settings]);
 
     const naiSettings = useMemo(() => {
@@ -284,6 +284,15 @@ export function ImageGenerationSettings() {
                                 placeholder="例如: masterpiece, best quality, ultra-detailed, 8k... (这些词会自动追加到生图指令后面)"
                                 rows={3}
                             />
+                        </div>
+                        <div className="menu-item !px-0 !py-2">
+                            <span className="settings-tools-menu-copy">
+                                <span className="menu-label appearance-menu-item-label">强制关闭流式传输 (Disable Streaming)</span>
+                                <span className="menu-desc settings-tools-menu-desc">针对部分强制使用 SSE 流式的第三方中转，开启后可避免“流式响应中断，未返图”报错。</span>
+                            </span>
+                            <span className="menu-right settings-tools-menu-toggle">
+                                <Toggle checked={activeOpenAiPreset.disableStream === true} onChange={(disableStream) => updateOpenAiPreset({ disableStream })} className="settings-toggle-control" />
+                            </span>
                         </div>
                     </div>
                 )}

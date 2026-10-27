@@ -25,6 +25,7 @@ type ImageGenerationRequest = {
   size?: string;
   quality?: string;
   referenceImageDataUrl?: string;
+  disableStream?: boolean;
   // NovelAI 专属参数
   negativePrompt?: string;
   steps?: number;
@@ -329,6 +330,7 @@ async function runImageGeneration(input: ImageGenerationRequest): Promise<{ stat
         prompt,
         ...(input.size && input.size !== "auto" ? { size: input.size } : {}),
         ...(input.quality && input.quality !== "auto" ? { quality: input.quality } : {}),
+        ...(input.disableStream ? { stream: false } : {}),
       });
     }
 

@@ -354,6 +354,7 @@ async function generateImageDirect(params: {
       prompt,
       ...(settings.size && settings.size !== "auto" ? { size: settings.size } : {}),
       ...(settings.quality && settings.quality !== "auto" ? { quality: settings.quality } : {}),
+      ...(settings.disableStream ? { stream: false } : {}),
     });
   }
 
@@ -451,6 +452,7 @@ async function generateImageViaServer(params: {
         size: settings.size,
         quality: settings.quality,
         referenceImageDataUrl: referenceImageDataUrl || undefined,
+        disableStream: settings.disableStream,
       }),
     });
     throwIfAborted(signal);
