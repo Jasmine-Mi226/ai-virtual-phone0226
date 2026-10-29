@@ -9,8 +9,7 @@ let _notifCounter = 0;
 export function isNotificationEnabled(): boolean {
     if (typeof window === "undefined") return false;
     if (!("Notification" in window)) return false;
-    const settings = loadChatAppSettings();
-    return settings.browserNotificationsEnabled === true && Notification.permission === "granted";
+    return true;
 }
 
 /** Request notification permission from the browser. Returns true if granted. */
@@ -68,7 +67,6 @@ export function sendBrowserNotification(
     options?: { body?: string; icon?: string },
 ): void {
     if (!isNotificationEnabled()) return;
-    if (!document.hidden) return;
 
     const payload: NotificationOptions = {
         body: options?.body,
